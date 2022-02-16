@@ -1,0 +1,52 @@
+import urllib.request, urllib.parse, urllib.error
+from bs4 import BeautifulSoup
+import ssl
+import json
+import re
+import os
+
+
+# Ignore SSL certificate errors
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
+
+print("USE WEATHERAPI.COM=>http://weatherapi.com:")
+
+#key=input('Enter API Key:')
+key=os.environ.get('WEATHER_KEY')#setting key as WEATHER_KEY in environmental variables
+loc = input('Enter location:')
+#base url already entered, takes additional info to complete the url
+url='http://api.weatherapi.com/v1/current.json?key='+key+'&q='+loc+'&aqi=no'
+html = urllib.request.urlopen(url, context=ctx).read()
+soup = BeautifulSoup(html, 'html.parser')
+rep=0
+# Retrieve all the info
+maintext=soup.prettify()
+info=json.loads(maintext)
+while rep!=4:
+    print("\n<<Info was last updated at>> ",info["current"]["last_updated"])
+    print("What do you want to display:\n1.Location\n2.Temperature\n3.Condition\n4.Exit")
+    rep=int(input())
+    
+    if rep==1:
+         print("Location:",info["location"]["country"])
+         print("Lattitude and Longitude:",info["location"]["lat"],",",info["location"]["lon"])
+         print("local time:",info["location"]["localtime"])
+    #     print(re.findall('"location":{(.+),"current',maintext))
+    elif rep==2:
+         print("temperature:",info["current"]["temp_c"]," C")
+         print("temperature:",info["current"]["temp_f"]," F")
+         
+    #     print(re.findall('"current":{(.+),"condition',maintext))
+    elif rep==3:
+         print("Conditions:",info["current"]["condition"]["text"])
+         print("humidity",info["current"]["humidity"])
+         print("cloud",info["current"]["cloud"])
+         print("uv",info["current"]["uv"])
+    #     print(re.findall('"condition":{(.+),"icon',maintext))
+    #     print(re.findall('("wind_mph".+)}',maintext))
+    elif rep==4:
+         print("Exiting")
+    else:print('Invalid')
+
